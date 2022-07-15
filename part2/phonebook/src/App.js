@@ -3,17 +3,28 @@ import axios from "axios";
 import Filter from "./components/Filter";
 import { Form } from "./components/Form";
 import Persons from "./components/Persons";
+import Notification from "./components/Notification";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNum, setNewNum] = useState("");
   const [query, setQuery] = useState("");
+  const [errMsg, setErrMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   useEffect(() => {
     axios
       .get("http://localhost:3001/persons")
-      .then((response) => setPersons(response.data));
+      .then((response) => setPersons(response.data))
+      .catch(() => {
+        setErrMsg(
+          "Failed to load contacts. Make sure your internet is connected"
+        );
+        setTimeout(() => {
+          setErrMsg("");
+        }, 5000);
+      });
   }, []);
 
   const addName = (e) => {
@@ -22,24 +33,84 @@ const App = () => {
     const nameExists = persons.some((person) => person.name === newName);
     const numExists = persons.some((person) => person.number === newNum);
 
-    if (nameExists && numExists) {
+    if (!newName || !newNum) {
+      alert("Add a name and number!");
+    } else if (nameExists && numExists) {
       alert("Contact already exists");
     } else if (nameExists) {
-      alert(`${newName} is already added to phonebook`);
-    } else if (numExists) {
-      alert(`${newNum} is already added to phonebook`);
+      const confirm = window.confirm(
+        `${newName} is already added to phonebook, replace the old number with the new one?`
+      );
+
+      const contact = persons.find((person) => person.name === newName);
+      const updatedContact = { ...contact, number: newNum };
+
+      if (confirm) {
+        axios
+          .put(`http://localhost:3001/persons/${contact.id}`, updatedContact)
+          .then((response) => {
+            setSuccessMsg(`Updated ${newName}`);
+            setTimeout(() => {
+              setSuccessMsg("");
+            }, 5000);
+            setPersons(
+              persons.map((person) =>
+                person.id !== contact.id ? person : response.data
+              )
+            );
+          })
+          .catch(() => {
+            setErrMsg(`Failed to update ${newName}`);
+            setTimeout(() => {
+              setErrMsg("");
+            }, 5000);
+          });
+      }
     } else {
       const nameObj = {
         name: newName,
         number: newNum,
-        id: newName,
       };
 
-      setPersons(persons.concat(nameObj));
-      setNewName("");
-      setNewNum("");
+      axios
+        .post("http://localhost:3001/persons", nameObj)
+        .then((response) => {
+          setSuccessMsg(`Added ${newName}`);
+          setTimeout(() => {
+            setSuccessMsg("");
+          }, 5000);
+          setPersons(persons.concat(response.data));
+          setNewName("");
+          setNewNum("");
+        })
+        .catch(() => {
+          setErrMsg(`Failed to add ${newName}`);
+          setTimeout(() => {
+            setErrMsg("");
+          }, 5000);
+        });
+    }
+  };
 
-      alert("Contact added successfully");
+  const deleteContact = (id, name) => {
+    const confirm = window.confirm(`Delete ${name}?`);
+
+    if (confirm) {
+      axios
+        .delete(`http://localhost:3001/persons/${id}`)
+        .then(() => {
+          setSuccessMsg(`Deleted ${name}`);
+          setTimeout(() => {
+            setSuccessMsg("");
+          }, 5000);
+          setPersons(persons.filter((person) => person.id !== id));
+        })
+        .catch(() => {
+          setErrMsg(`${name} has already been deleted`);
+          setTimeout(() => {
+            setErrMsg("");
+          });
+        });
     }
   };
 
@@ -59,6 +130,9 @@ const App = () => {
     <div>
       <h2>Phonebook</h2>
 
+      <Notification message={errMsg} type="error" />
+      <Notification message={successMsg} type="success" />
+
       <Filter value={query} onChange={handleQuery} />
 
       <h3>Add a new</h3>
@@ -73,7 +147,7 @@ const App = () => {
 
       <h3>Numbers</h3>
 
-      <Persons persons={persons} query={query} />
+      <Persons persons={persons} query={query} onClick={deleteContact} />
     </div>
   );
 };

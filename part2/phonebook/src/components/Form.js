@@ -14,10 +14,11 @@ const Input = ({ label, value, onChange }) => (
   </div>
 );
 
-const Button = ({ type, text }) => (
-  <div>
-    <button type={type}> {text} </button>
-  </div>
+const Button = ({ type, text, onClick }) => (
+  <button type={type} onClick={onClick}>
+    {" "}
+    {text}{" "}
+  </button>
 );
 
-export { Form, Input };
+export { Form, Input, Button };
