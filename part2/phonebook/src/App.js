@@ -34,9 +34,15 @@ const App = () => {
     const numExists = persons.some((person) => person.number === newNum);
 
     if (!newName || !newNum) {
-      alert("Add a name and number!");
+      setErrMsg("Add a name and number!");
+      setTimeout(() => {
+        setErrMsg("");
+      }, 5000);
     } else if (nameExists && numExists) {
-      alert("Contact already exists");
+      setErrMsg("Contact already exists");
+      setTimeout(() => {
+        setErrMsg("");
+      }, 5000);
     } else if (nameExists) {
       const confirm = window.confirm(
         `${newName} is already added to phonebook, replace the old number with the new one?`
