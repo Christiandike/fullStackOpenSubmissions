@@ -15,7 +15,7 @@ const App = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/persons")
+      .get("/api/persons")
       .then((response) => setPersons(response.data))
       .catch(() => {
         setErrMsg(
@@ -53,7 +53,7 @@ const App = () => {
 
       if (confirm) {
         axios
-          .put(`http://localhost:3001/persons/${contact.id}`, updatedContact)
+          .put(`/api/persons/${contact.id}`, updatedContact)
           .then((response) => {
             setSuccessMsg(`Updated ${newName}`);
             setTimeout(() => {
@@ -79,7 +79,7 @@ const App = () => {
       };
 
       axios
-        .post("http://localhost:3001/persons", nameObj)
+        .post("/api/persons", nameObj)
         .then((response) => {
           setSuccessMsg(`Added ${newName}`);
           setTimeout(() => {
@@ -103,7 +103,7 @@ const App = () => {
 
     if (confirm) {
       axios
-        .delete(`http://localhost:3001/persons/${id}`)
+        .delete(`/api/persons/${id}`)
         .then(() => {
           setSuccessMsg(`Deleted ${name}`);
           setTimeout(() => {
